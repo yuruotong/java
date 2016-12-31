@@ -21,7 +21,7 @@ class Car extends JPanel {
 }
 
 class CreatCm{
-	int []speed={0,0,0,0};
+	
 	Car car1=new Car();
 	Car car2=new Car();
 	Car car3=new Car();
@@ -31,23 +31,32 @@ class CreatCm{
 	JTextField iCar2=new JTextField("输入赛车2速度");
 	JTextField iCar3=new JTextField("输入赛车3速度");
 	JTextField iCar4=new JTextField("输入赛车4速度");
-	Thread thread1=new SetLocation(car1,speed[1]);  //用于设置小车的位置
-	
+	int []speed={0,0,0,0,0}; //设置小车速度
+	Thread thread1=new SetLocation(car1);  //用于设置小车1的速度
+	Thread thread2=new SetLocation(car2);
+	Thread thread3=new SetLocation(car3);
+	Thread thread4=new SetLocation(car4);
 	Panel control=new Panel();
 	Panel conInput=new Panel();
 	int c1spd,c2spd,c3spd,c4spd;
 	CreatCm(){
     f.setLayout(new GridLayout(5,1));
 	f.setBounds(150,150,800,400);
-	
-
     c1spd=stoNumber(iCar1.getText());  //转换为string类型
-     
-    conInput.add(iCar1);
-     
+    conInput.setLayout(new GridLayout(1,4));
+    conInput.add(iCar1);  //放入输入文字
+    conInput.add(iCar2);
+    conInput.add(iCar3);
+    conInput.add(iCar4);
     f.add(conInput);
     f.add(car1);
-	thread1.start();
+    f.add(car2);
+    f.add(car3);
+    f.add(car4);
+    thread1.start();
+	thread2.start();
+	thread3.start();
+	thread4.start();
 	f.setVisible(true);
 
 	
@@ -72,13 +81,15 @@ class CreatCm{
 
 class SetLocation extends Thread{
 Car car;
-int speed;
-SetLocation(Car car,int speed){
+int speed=0;
+SetLocation(Car car){
 	
 	this.car=car;
-	this.speed=speed;
 	
 }
+void setSpeed(int speed){
+	
+	this.speed=speed;}
 public void run(){
 	
 	int i=800;
