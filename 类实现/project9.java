@@ -21,24 +21,22 @@ b.start();
 
 
 class ThreadA extends Thread{
-	int i;
-	int []numberA=new int [4];
-	int []sleepA=new int [4];
-	private DataOutputStream toSever;
+	int i;  //循环变量
+	int sleepTime; //保存sleep时间
+	Socket socket; //创建socket
+	private DataOutputStream toSever;  //创建写入流
 	public void run(){
 		try {
-			Socket socket=new Socket("127.0.0.1",8001);
+			socket=new Socket("127.0.0.1",8001); //实例化socket
+			toSever=new DataOutputStream(socket.getOutputStream());  //实例化写入流
 			
-			toSever=new DataOutputStream(socket.getOutputStream());
-	
-		
-		for(i=0;i<4;i++){
-	         numberA[i]=(int)(Math.random()*10);
-		
-			sleepA[i]=(int)(Math.random()*2000);
-		    sleep(sleepA[i]);
-		    toSever.writeInt(numberA[i]);
-		    toSever.writeInt(sleepA[i]);
+			//--------------------------------------------------------
+	         for(i=0;i<4;i++){   //进行4次比较
+	         sleepTime=(int)(Math.random()*2000);
+		      sleep(sleepTime);
+		      //---------------------------------------------------------------
+		      toSever.writeInt((int)(Math.random()*10));  //将生成的数字发送
+		      toSever.writeInt(sleepTime);
 		    
 		}
 			
@@ -56,48 +54,37 @@ class ThreadA extends Thread{
 		
 		}
 	
-	
-
-	public int[] getNumber(){
-		return numberA;
-	}
-	public int[] getSleep(){
-		return sleepA;
-	}
-	
 
 }
 class ThreadB  extends Thread{
-    int []numberB=new int [4];
-    int []sleepB=new int [4];
+    int sleepTime;
 	int i;
 	byte[] buf; //用于封装数据
-
-	String str; //要发送的数据
-
-	DatagramPacket dp;//创建数据报
+   String str; //要发送的数据
+    DatagramPacket dp;//创建数据报
 	DatagramSocket ds;//设置端口号
 	public void run(){
 		 try {
 			ds=new DatagramSocket();
 		    
-		for(i=0;i<4;i++){
-		numberB[i]=(int)(Math.random()*10);
-	     
-	      sleepB[i]=(int)(Math.random()*2000);
+		for(i=0;i<4;i++){  //这里发送4次数据
+		 
+	       sleepTime=(int)(Math.random()*2000);
 
-			Thread.sleep(sleepB[i]);
-			str=numberB[i]+"";
-			 buf=str.getBytes(); 
+			Thread.sleep(sleepTime);
+	       //--------------------------------------------------------------
+		   str=(int)(Math.random()*10)+"";  //生成随机数字
+		   buf=str.getBytes(); 
 		   dp=new DatagramPacket(buf, buf.length,InetAddress.getByName("localhost"),8005); 
 		   ds.send(dp);
 		   
 		  // --------------------------------------------------------
 
-		    str=sleepB[i]+"";
-		    buf=str.getBytes(); 
-		   dp=new DatagramPacket(buf, buf.length,InetAddress.getByName("localhost"),8005); 
-		   ds.send(dp);
+		    str=sleepTime+"";
+		    buf=str.getBytes();    //转化为字节
+		   dp=new DatagramPacket(buf, buf.length,InetAddress.getByName("localhost"),8005);//实例化数据报 
+		   ds.send(dp);  //利用socket发送数据报
+		   //------------------------------------------------------------
 		}
 		
 		
@@ -117,16 +104,6 @@ class ThreadB  extends Thread{
 			e.printStackTrace();
 		} 
 		}
-		
-	public int[] getNumber(){
-		return numberB;
-	}
-	public int[] getSleep(){
-		return sleepB;
-	}
-	
-
-
 }
 class Sever extends  Thread {
 	String winer;
@@ -141,29 +118,31 @@ class Sever extends  Thread {
 	public void run(){
 		      
 		try {
+			//-------------------------------------------------------------服务器端初始准备
 			// 对于A的tcp服务器端口
-			ServerSocket serverSocketTcp=new ServerSocket(8001);
+			ServerSocket serverSocketTcp=new ServerSocket(8001);  //利用端口8001来接收
 			Socket socket=serverSocketTcp.accept();
 			DataInputStream input=new DataInputStream(socket.getInputStream());
 			// 对于B的udp服务器端口
-			 DatagramSocket  serverSocketUdp = new DatagramSocket(8005);
+			 DatagramSocket  serverSocketUdp = new DatagramSocket(8005);//利用端口8005来接收
 			  byte[] recvBuf = new byte[100];  //接受数据包大小
-			  DatagramPacket recvPacket1= new DatagramPacket(recvBuf, recvBuf.length);//数据报
+			  DatagramPacket recvPacket1= new DatagramPacket(recvBuf, recvBuf.length);//接收数据报设置
+			  
+			  //----------------------------------------------------------------------------
 			  System.out.println("       A        "+"|"+"       B      ");
 				System.out.printf("次数 :睡眠时间 变量  分数"+"|"+"睡眠时间 变量  分数\n");
+				//----------------------------------------------------------------
 			while(true){
 
 			        numberA=input.readInt();
 					sleepA=input.readInt();
 					 serverSocketUdp.receive(recvPacket1);
-					 int numberB = Integer.parseInt(new String(recvBuf,0,recvPacket1.getLength()));
+					numberB = Integer.parseInt(new String(recvBuf,0,recvPacket1.getLength()));
 					 serverSocketUdp.receive(recvPacket1);
-					 int sleepB = Integer.parseInt(new String(recvBuf,0,recvPacket1.getLength()));
-		            
-		              
-		              compare(numberA,numberB,sleepA,sleepB,i);
-		              i++;
-		              if(i==4){
+					 sleepB = Integer.parseInt(new String(recvBuf,0,recvPacket1.getLength()));
+		             compare(numberA,numberB,sleepA,sleepB,i);
+		              i++;  //这里i用来计算次数
+		              if(i==4){  //因为发送的数据是4个
 					 if(pointA>pointB) winer="winer is A";
 						else if(pointA<pointB)winer="winer isB";
 						else winer="No winer";
